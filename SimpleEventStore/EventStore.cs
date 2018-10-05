@@ -20,7 +20,7 @@ namespace SimpleEventStore
             var storageEvents = new List<StorageEvent>();
             var eventVersion = expectedVersion;
 
-            for (int i = 0; i < events.Length; i++)
+            for (var i = 0; i < events.Length; i++)
             {
                 storageEvents.Add(new StorageEvent(streamId, events[i], ++eventVersion));
             }
@@ -40,6 +40,13 @@ namespace SimpleEventStore
             Guard.IsNotNullOrEmpty(nameof(streamId), streamId);
 
             return engine.ReadStreamForwards(streamId, startPosition, numberOfEventsToRead);
+        }
+
+        public Task DeleteStream(string streamId)
+        {
+            Guard.IsNotNullOrEmpty(nameof(streamId), streamId);
+
+            return engine.DeleteStream(streamId);
         }
     }
 }

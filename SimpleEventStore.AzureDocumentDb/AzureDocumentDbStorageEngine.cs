@@ -11,13 +11,15 @@ namespace SimpleEventStore.AzureDocumentDb
     internal class AzureDocumentDbStorageEngine : IStorageEngine
     {
         private const string AppendStoredProcedureName = "appendToStream";
+        private const string DeleteStoredProcedureName = "deleteStream";
         private const string ConcurrencyConflictErrorKey = "Concurrency conflict.";
 
         private readonly DocumentClient client;
         private readonly string databaseName;
         private readonly CollectionOptions collectionOptions;
         private readonly Uri commitsLink;
-        private readonly Uri storedProcLink;
+        private readonly Uri appendStoredProcedureLink;
+        private readonly Uri deleteStoredProcedureLink;
         private readonly LoggingOptions loggingOptions;
         private readonly ISerializationTypeMap typeMap;
 
@@ -27,7 +29,8 @@ namespace SimpleEventStore.AzureDocumentDb
             this.databaseName = databaseName;
             this.collectionOptions = collectionOptions;
             commitsLink = UriFactory.CreateDocumentCollectionUri(databaseName, collectionOptions.CollectionName);
-            storedProcLink = UriFactory.CreateStoredProcedureUri(databaseName, collectionOptions.CollectionName, AppendStoredProcedureName);
+            appendStoredProcedureLink = UriFactory.CreateStoredProcedureUri(databaseName, collectionOptions.CollectionName, AppendStoredProcedureName);
+            deleteStoredProcedureLink = UriFactory.CreateStoredProcedureUri(databaseName, collectionOptions.CollectionName, DeleteStoredProcedureName);
             this.loggingOptions = loggingOptions;
             this.typeMap = typeMap;
         }
@@ -36,7 +39,8 @@ namespace SimpleEventStore.AzureDocumentDb
         {
             await CreateDatabaseIfItDoesNotExist();
             await CreateCollectionIfItDoesNotExist();
-            await CreateAppendStoredProcedureIfItDoesNotExist();
+            await CreateStoredProcedureIfItDoesNotExist(AppendStoredProcedureName, "appendToStream.js");
+            await CreateStoredProcedureIfItDoesNotExist(DeleteStoredProcedureName, "deleteStream.js");
 
             return this;
         }
@@ -48,7 +52,7 @@ namespace SimpleEventStore.AzureDocumentDb
             try
             {
                 var result = await client.ExecuteStoredProcedureAsync<dynamic>(
-                    storedProcLink,
+                    appendStoredProcedureLink,
                     new RequestOptions { PartitionKey = new PartitionKey(streamId), ConsistencyLevel = collectionOptions.ConsistencyLevel },
                     docs);
 
@@ -90,6 +94,26 @@ namespace SimpleEventStore.AzureDocumentDb
             return events.AsReadOnly();
         }
 
+        public async Task DeleteStream(string streamId)
+        {
+            while (true)
+            {
+                var result = await client.ExecuteStoredProcedureAsync<dynamic>(
+                        deleteStoredProcedureLink,
+                        new RequestOptions { PartitionKey = new PartitionKey(streamId), ConsistencyLevel = collectionOptions.ConsistencyLevel },
+                        streamId);
+
+                if ((bool)result.Response.continuation)
+                {
+                    continue;
+                }
+
+                loggingOptions.OnSuccess(ResponseInformation.FromWriteResponse(nameof(DeleteStream), result));
+
+                break;
+            }
+        }
+
         private async Task CreateDatabaseIfItDoesNotExist()
         {
             await client.CreateDatabaseIfNotExistsAsync(new Database { Id = databaseName });
@@ -117,18 +141,18 @@ namespace SimpleEventStore.AzureDocumentDb
             await client.CreateDocumentCollectionIfNotExistsAsync(databaseUri, collection, requestOptions);
         }
 
-        private async Task CreateAppendStoredProcedureIfItDoesNotExist()
+        private async Task CreateStoredProcedureIfItDoesNotExist(string procedureName, string resourceName)
         {
             var query = client.CreateStoredProcedureQuery(commitsLink)
-                .Where(x => x.Id == AppendStoredProcedureName)
+                .Where(x => x.Id == procedureName)
                 .AsDocumentQuery();
 
             if (!(await query.ExecuteNextAsync<StoredProcedure>()).Any())
             {
                 await client.CreateStoredProcedureAsync(commitsLink, new StoredProcedure
                 {
-                    Id = AppendStoredProcedureName,
-                    Body = Resources.GetString("appendToStream.js")
+                    Id = procedureName,
+                    Body = Resources.GetString(resourceName)
                 });
             }
         }

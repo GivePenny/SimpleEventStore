@@ -11,5 +11,7 @@ namespace SimpleEventStore
         Task<IReadOnlyCollection<StorageEvent>> ReadStreamForwards(string streamId, int startPosition, int numberOfEventsToRead);
 
         Task<IStorageEngine> Initialise();
+
+        Task DeleteStream(string streamId);
     }
 }

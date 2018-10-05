@@ -1,17 +1,15 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio 15
+VisualStudioVersion = 15.0.28010.2041
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimpleEventStore", "SimpleEventStore\SimpleEventStore.csproj", "{73235465-69BF-4762-B8C5-20C8E45795FF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SimpleEventStore", "SimpleEventStore\SimpleEventStore.csproj", "{73235465-69BF-4762-B8C5-20C8E45795FF}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{CD241C9A-0A56-42C9-8309-D68890C78B64}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SimpleEventStore.Tests", "SimpleEventStore.Tests\SimpleEventStore.Tests.csproj", "{ACA6B3AE-FCB9-45F4-9D6B-66196F98F819}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimpleEventStore.Tests", "SimpleEventStore.Tests\SimpleEventStore.Tests.csproj", "{ACA6B3AE-FCB9-45F4-9D6B-66196F98F819}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SimpleEventStore.AzureDocumentDb", "SimpleEventStore.AzureDocumentDb\SimpleEventStore.AzureDocumentDb.csproj", "{48C71940-D9B0-446A-9F3D-E6275CD43440}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimpleEventStore.AzureDocumentDb", "SimpleEventStore.AzureDocumentDb\SimpleEventStore.AzureDocumentDb.csproj", "{48C71940-D9B0-446A-9F3D-E6275CD43440}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimpleEventStore.AzureDocumentDb.Tests", "SimpleEventStore.AzureDocumentDb.Tests\SimpleEventStore.AzureDocumentDb.Tests.csproj", "{205A7F81-A496-4400-9A97-D156F88B7883}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SimpleEventStore.AzureDocumentDb.Tests", "SimpleEventStore.AzureDocumentDb.Tests\SimpleEventStore.AzureDocumentDb.Tests.csproj", "{205A7F81-A496-4400-9A97-D156F88B7883}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,8 +37,7 @@ Global
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
-	GlobalSection(NestedProjects) = preSolution
-		{ACA6B3AE-FCB9-45F4-9D6B-66196F98F819} = {CD241C9A-0A56-42C9-8309-D68890C78B64}
-		{205A7F81-A496-4400-9A97-D156F88B7883} = {CD241C9A-0A56-42C9-8309-D68890C78B64}
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {936D1C6C-3474-4DFB-A983-FF729D21B72B}
 	EndGlobalSection
 EndGlobal

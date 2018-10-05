@@ -33,6 +33,23 @@ namespace SimpleEventStore.InMemory
             });
         }
 
+        public Task DeleteStream(string streamId)
+        {
+            if (!streams.ContainsKey(streamId))
+            {
+                return Task.CompletedTask;
+            }
+
+            foreach (var @event in streams[streamId])
+            {
+                allEvents.Remove(@event);
+            }
+
+            streams.TryRemove(streamId, out var removedStream);
+
+            return Task.CompletedTask;
+        }
+
         private void AddEventsToAllStream(IEnumerable<StorageEvent> events)
         {
             foreach (var e in events)
