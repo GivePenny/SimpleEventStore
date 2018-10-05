@@ -1,4 +1,3 @@
-using System;
 using Microsoft.Azure.Documents;
 
 namespace SimpleEventStore.AzureDocumentDb
@@ -7,9 +6,9 @@ namespace SimpleEventStore.AzureDocumentDb
     {
         public CollectionOptions()
         {
-            this.ConsistencyLevel = ConsistencyLevel.Session;
-            this.CollectionRequestUnits = 400;
-            this.CollectionName = "Commits";
+            ConsistencyLevel = ConsistencyLevel.Session;
+            CollectionRequestUnits = 400;
+            CollectionName = "Commits";
         }
 
         public string CollectionName { get; set; }

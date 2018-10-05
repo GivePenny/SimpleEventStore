@@ -17,9 +17,8 @@ namespace SimpleEventStore.AzureDocumentDb.Tests
                 .Build();
 
             var consistencyLevel = config["ConsistencyLevel"];
-            ConsistencyLevel consistencyLevelEnum;
 
-            if(!Enum.TryParse(consistencyLevel, true, out consistencyLevelEnum))
+            if (!Enum.TryParse(consistencyLevel, true, out ConsistencyLevel consistencyLevelEnum))
             {
                 throw new Exception($"The ConsistencyLevel value {consistencyLevel} is not supported");
             }
@@ -31,7 +30,7 @@ namespace SimpleEventStore.AzureDocumentDb.Tests
                 {
                     o.ConsistencyLevel = consistencyLevelEnum;
                     o.CollectionRequestUnits = TestConstants.RequestUnits;
-                    if(collectionOverrides != null) collectionOverrides(o);
+                    collectionOverrides?.Invoke(o);
                 })
                 .UseTypeMap(new ConfigurableSerializationTypeMap()
                     .RegisterTypes(

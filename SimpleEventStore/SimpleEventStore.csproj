@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <Title>GivePenny.SimpleEventStore</Title>
+    <Description>Simple Event Store (SES) provides a lightweight event sourcing abstraction.</Description>
+    <Company>GivePenny</Company>
+    <Copyright>Copyright GivePenny ©2018 (MIT licence)</Copyright>
+    <Product>SimpleEventStore</Product>
+    <PackageId>GivePenny.SimpleEventStore</PackageId>
+    <Authors>GivePenny</Authors>
+    <PackageTags>eventsourcing documentdb azure</PackageTags>
+    <PackageProjectUrl>https://github.com/GivePenny/SimpleEventStore</PackageProjectUrl>
+    <TargetFrameworks>netstandard2.0</TargetFrameworks>
+  </PropertyGroup>
+</Project>

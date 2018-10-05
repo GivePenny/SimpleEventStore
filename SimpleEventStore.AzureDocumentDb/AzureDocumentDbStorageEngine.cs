@@ -26,8 +26,8 @@ namespace SimpleEventStore.AzureDocumentDb
             this.client = client;
             this.databaseName = databaseName;
             this.collectionOptions = collectionOptions;
-            this.commitsLink = UriFactory.CreateDocumentCollectionUri(databaseName, collectionOptions.CollectionName);
-            this.storedProcLink = UriFactory.CreateStoredProcedureUri(databaseName, collectionOptions.CollectionName, AppendStoredProcedureName);
+            commitsLink = UriFactory.CreateDocumentCollectionUri(databaseName, collectionOptions.CollectionName);
+            storedProcLink = UriFactory.CreateStoredProcedureUri(databaseName, collectionOptions.CollectionName, AppendStoredProcedureName);
             this.loggingOptions = loggingOptions;
             this.typeMap = typeMap;
         }
@@ -43,13 +43,13 @@ namespace SimpleEventStore.AzureDocumentDb
 
         public async Task AppendToStream(string streamId, IEnumerable<StorageEvent> events)
         {
-            var docs = events.Select(d => DocumentDbStorageEvent.FromStorageEvent(d, this.typeMap)).ToList();
+            var docs = events.Select(d => DocumentDbStorageEvent.FromStorageEvent(d, typeMap)).ToList();
 
             try
             {
-                var result = await this.client.ExecuteStoredProcedureAsync<dynamic>(
+                var result = await client.ExecuteStoredProcedureAsync<dynamic>(
                     storedProcLink,
-                    new RequestOptions { PartitionKey = new PartitionKey(streamId), ConsistencyLevel = this.collectionOptions.ConsistencyLevel },
+                    new RequestOptions { PartitionKey = new PartitionKey(streamId), ConsistencyLevel = collectionOptions.ConsistencyLevel },
                     docs);
 
                 loggingOptions.OnSuccess(ResponseInformation.FromWriteResponse(nameof(AppendToStream), result));
@@ -67,9 +67,9 @@ namespace SimpleEventStore.AzureDocumentDb
 
         public async Task<IReadOnlyCollection<StorageEvent>> ReadStreamForwards(string streamId, int startPosition, int numberOfEventsToRead)
         {
-            int endPosition = numberOfEventsToRead == int.MaxValue ? int.MaxValue : startPosition + numberOfEventsToRead;
+            var endPosition = numberOfEventsToRead == int.MaxValue ? int.MaxValue : startPosition + numberOfEventsToRead;
 
-            var eventsQuery = this.client.CreateDocumentQuery<DocumentDbStorageEvent>(commitsLink)
+            var eventsQuery = client.CreateDocumentQuery<DocumentDbStorageEvent>(commitsLink)
                 .Where(x => x.StreamId == streamId && x.EventNumber >= startPosition && x.EventNumber <= endPosition)
                 .OrderBy(x => x.EventNumber)
                 .AsDocumentQuery();
@@ -83,7 +83,7 @@ namespace SimpleEventStore.AzureDocumentDb
 
                 foreach (var e in response)
                 {
-                    events.Add(e.ToStorageEvent(this.typeMap));
+                    events.Add(e.ToStorageEvent(typeMap));
                 }
             }
 
@@ -99,9 +99,11 @@ namespace SimpleEventStore.AzureDocumentDb
         {
             var databaseUri = UriFactory.CreateDatabaseUri(databaseName);
 
-            var collection = new DocumentCollection();
-            collection.Id = collectionOptions.CollectionName;
-            collection.DefaultTimeToLive = collectionOptions.DefaultTimeToLive;
+            var collection = new DocumentCollection
+            {
+                Id = collectionOptions.CollectionName,
+                DefaultTimeToLive = collectionOptions.DefaultTimeToLive
+            };
             collection.PartitionKey.Paths.Add("/streamId");
             collection.IndexingPolicy.IncludedPaths.Add(new IncludedPath { Path = "/*" });
             collection.IndexingPolicy.ExcludedPaths.Add(new ExcludedPath { Path = "/body/*" });

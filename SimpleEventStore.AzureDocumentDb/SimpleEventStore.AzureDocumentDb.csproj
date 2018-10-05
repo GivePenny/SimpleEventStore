@@ -1,0 +1,25 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.0</TargetFrameworks>
+    <Title>GivePenny.SimpleEventStore.AzureDocumentDb</Title>
+    <Description>Provides a DocumentDB storage engine for Simple Event Store (SES)</Description>
+    <Company>GivePenny</Company>
+    <Copyright>Copyright GivePenny ©2018 (MIT licence)</Copyright>
+    <Product>SimpleEventStore.AzureDocumentDb</Product>
+    <PackageId>GivePenny.SimpleEventStore.AzureDocumentDb</PackageId>
+    <Authors>GivePenny</Authors>
+    <PackageTags>eventsourcing documentdb azure</PackageTags>
+    <PackageProjectUrl>https://github.com/GivePenny/SimpleEventStore</PackageProjectUrl>
+    <OutputTypeEx>library</OutputTypeEx>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Azure.DocumentDB.Core" Version="2.1.2" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\SimpleEventStore\SimpleEventStore.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\appendToStream.js" />
+  </ItemGroup>
+</Project>

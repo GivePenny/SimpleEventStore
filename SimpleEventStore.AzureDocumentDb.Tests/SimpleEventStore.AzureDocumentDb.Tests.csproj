@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <Title>SimpleEventStore.AzureDocumentDb.Tests</Title>
+    <Company>GivePenny</Company>
+    <Copyright>Copyright GivePenny ©2018 (MIT licence)</Copyright>
+    <Product>SimpleEventStore.AzureDocumentDb.Tests</Product>
+    <TargetFrameworks>netcoreapp2.1</TargetFrameworks>
+  </PropertyGroup>
+  <ItemGroup>
+    <Content Include="appsettings.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Azure.DocumentDB.Core" Version="2.1.2" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="2.1.1" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="2.1.1" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.8.0" />
+    <PackageReference Include="NUnit" Version="3.10.1" />
+    <PackageReference Include="NUnit3TestAdapter" Version="3.10.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\SimpleEventStore\SimpleEventStore.csproj" />
+    <ProjectReference Include="..\SimpleEventStore.AzureDocumentDb\SimpleEventStore.AzureDocumentDb.csproj" />
+    <ProjectReference Include="..\SimpleEventStore.Tests\SimpleEventStore.Tests.csproj" />
+  </ItemGroup>
+</Project>

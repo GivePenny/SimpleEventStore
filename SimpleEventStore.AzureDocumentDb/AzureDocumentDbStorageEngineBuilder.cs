@@ -46,7 +46,7 @@ namespace SimpleEventStore.AzureDocumentDb
 
         public IStorageEngine Build()
         {
-            var engine = new AzureDocumentDbStorageEngine(this.client, this.databaseName, this.collectionOptions, this.loggingOptions, this.typeMap);
+            var engine = new AzureDocumentDbStorageEngine(client, databaseName, collectionOptions, loggingOptions, typeMap);
             return engine;
         }
     }

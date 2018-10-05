@@ -35,11 +35,13 @@ namespace SimpleEventStore.AzureDocumentDb
 
         public static DocumentDbStorageEvent FromStorageEvent(StorageEvent @event, ISerializationTypeMap typeMap)
         {
-            var docDbEvent = new DocumentDbStorageEvent();
-            docDbEvent.Id = $"{@event.StreamId}:{@event.EventNumber}";
-            docDbEvent.EventId = @event.EventId;
-            docDbEvent.Body = JObject.FromObject(@event.EventBody);
-            docDbEvent.BodyType = typeMap.GetNameFromType(@event.EventBody.GetType());
+            var docDbEvent = new DocumentDbStorageEvent
+            {
+                Id = $"{@event.StreamId}:{@event.EventNumber}",
+                EventId = @event.EventId,
+                Body = JObject.FromObject(@event.EventBody),
+                BodyType = typeMap.GetNameFromType(@event.EventBody.GetType())
+            };
             if (@event.Metadata != null)
             {
                 docDbEvent.Metadata = JObject.FromObject(@event.Metadata);
@@ -70,8 +72,8 @@ namespace SimpleEventStore.AzureDocumentDb
 
         public StorageEvent ToStorageEvent(ISerializationTypeMap typeMap)
         {
-            object body = Body.ToObject(typeMap.GetTypeFromName(BodyType));
-            object metadata = Metadata?.ToObject(typeMap.GetTypeFromName(MetadataType));
+            var body = Body.ToObject(typeMap.GetTypeFromName(BodyType));
+            var metadata = Metadata?.ToObject(typeMap.GetTypeFromName(MetadataType));
             return new StorageEvent(StreamId, new EventData(EventId, body, metadata), EventNumber);
         }
     }
