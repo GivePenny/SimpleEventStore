@@ -32,7 +32,7 @@ namespace SimpleEventStore
         {
             Guard.IsNotNullOrEmpty(nameof(streamId), streamId);
 
-            return engine.ReadStreamForwards(streamId, 1, Int32.MaxValue);
+            return engine.ReadStreamForwards(streamId, 1, int.MaxValue);
         }
 
         public Task<IReadOnlyCollection<StorageEvent>> ReadStreamForwards(string streamId, int startPosition, int numberOfEventsToRead)
@@ -40,6 +40,21 @@ namespace SimpleEventStore
             Guard.IsNotNullOrEmpty(nameof(streamId), streamId);
 
             return engine.ReadStreamForwards(streamId, startPosition, numberOfEventsToRead);
+        }
+
+        public Task<IReadOnlyCollection<StorageEvent>> ReadStreamForwardsFromLast(string streamId, Predicate<StorageEvent> readFromHere)
+        {
+            Guard.IsNotNullOrEmpty(nameof(streamId), streamId);
+            Guard.IsNotNull(nameof(readFromHere), readFromHere);
+
+            return engine.ReadStreamForwardsFromLast(streamId, readFromHere);
+        }
+
+        public Task<IReadOnlyCollection<StorageEvent>> ReadStreamForwardsFromLast<TSnapshot>(string streamId)
+        {
+            return ReadStreamForwardsFromLast(
+                streamId,
+                storageEvent => storageEvent.EventBody is TSnapshot);
         }
 
         public Task DeleteStream(string streamId)

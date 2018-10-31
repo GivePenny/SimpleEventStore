@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Azure.Documents;
@@ -92,6 +93,40 @@ namespace SimpleEventStore.AzureDocumentDb
             }
 
             return events.AsReadOnly();
+        }
+
+        public async Task<IReadOnlyCollection<StorageEvent>> ReadStreamForwardsFromLast(string streamId, Predicate<StorageEvent> readFromHere)
+        {
+            var eventsQuery = client.CreateDocumentQuery<DocumentDbStorageEvent>(commitsLink)
+                .Where(x => x.StreamId == streamId)
+                .OrderByDescending(x => x.EventNumber)
+                .AsDocumentQuery();
+
+            var eventsInReverseOrder = new List<StorageEvent>();
+            var finished = false;
+
+            while (!finished && eventsQuery.HasMoreResults)
+            {
+                var response = await eventsQuery.ExecuteNextAsync<DocumentDbStorageEvent>();
+                loggingOptions.OnSuccess(ResponseInformation.FromReadResponse(nameof(ReadStreamForwardsFromLast), response));
+
+                foreach (var e in response)
+                {
+                    var storageEvent = e.ToStorageEvent(typeMap);
+                    eventsInReverseOrder.Add(storageEvent);
+
+                    if (readFromHere(storageEvent))
+                    {
+                        finished = true;
+                        break;
+                    }
+                }
+            }
+
+            return eventsInReverseOrder
+                .Reverse<StorageEvent>()
+                .ToList()
+                .AsReadOnly();
         }
 
         public async Task DeleteStream(string streamId)

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -65,7 +66,29 @@ namespace SimpleEventStore.InMemory
                 return Task.FromResult(EmptyStream);
             }
 
-            IReadOnlyCollection<StorageEvent> stream = streams[streamId].Skip(startPosition - 1).Take(numberOfEventsToRead).ToList().AsReadOnly();
+            IReadOnlyCollection<StorageEvent> stream = streams[streamId]
+                .Skip(startPosition - 1)
+                .Take(numberOfEventsToRead)
+                .ToList()
+                .AsReadOnly();
+
+            return Task.FromResult(stream);
+        }
+
+        public Task<IReadOnlyCollection<StorageEvent>> ReadStreamForwardsFromLast(string streamId, Predicate<StorageEvent> readFromHere)
+        {
+            if (!streams.ContainsKey(streamId))
+            {
+                return Task.FromResult(EmptyStream);
+            }
+
+            IReadOnlyCollection<StorageEvent> stream = streams[streamId]
+                .Reverse<StorageEvent>()
+                .TakeUntilImmediatelyAfter(readFromHere)
+                .Reverse()
+                .ToList()
+                .AsReadOnly();
+
             return Task.FromResult(stream);
         }
 

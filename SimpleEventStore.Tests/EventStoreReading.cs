@@ -63,5 +63,24 @@ namespace SimpleEventStore.Tests
             Assert.That(events.Count, Is.EqualTo(1));
             Assert.That(events.First().EventBody, Is.InstanceOf<OrderDispatched>());
         }
+
+        [Test]
+        public async Task when_reading_a_stream_from_snapshot_only_subsequent_events_are_returned()
+        {
+            var streamId = Guid.NewGuid().ToString();
+            var subject = await GetEventStore();
+
+            await subject.AppendToStream(streamId, 0, new EventData(Guid.NewGuid(), new OrderCreated(streamId)));
+            await subject.AppendToStream(streamId, 1, new EventData(Guid.NewGuid(), new OrderSnapshot(streamId)));
+            await subject.AppendToStream(streamId, 2, new EventData(Guid.NewGuid(), new OrderDispatched(streamId)));
+
+            var events = await subject.ReadStreamForwardsFromLast(
+                streamId,
+                storageEvent => storageEvent.EventBody is OrderSnapshot);
+
+            Assert.That(events.Count, Is.EqualTo(2));
+            Assert.That(events.First().EventBody, Is.InstanceOf<OrderSnapshot>());
+            Assert.That(events.Skip(1).Single().EventBody, Is.InstanceOf<OrderDispatched>());
+        }
     }
 }
