@@ -7,6 +7,8 @@ namespace SimpleEventStore.AzureDocumentDb
 {
     public class DocumentDbStorageEvent
     {
+        private const string TimeToLiveCosmosDbSystemDocumentPropertyName = "ttl";
+
         [JsonProperty("id")]
         public string Id { get; set;  }
 
@@ -31,7 +33,7 @@ namespace SimpleEventStore.AzureDocumentDb
         [JsonProperty("eventNumber")]
         public int EventNumber { get; set; }
 
-        [JsonProperty(PropertyName = "ttl", NullValueHandling = NullValueHandling.Ignore)]
+        [JsonProperty(PropertyName = TimeToLiveCosmosDbSystemDocumentPropertyName, NullValueHandling = NullValueHandling.Ignore)]
         public int? TimeToLiveSeconds { get; set; }
 
         public static DocumentDbStorageEvent FromStorageEvent(StorageEvent @event, ISerializationTypeMap typeMap, int? documentTimeToLiveSeconds)
@@ -67,7 +69,7 @@ namespace SimpleEventStore.AzureDocumentDb
                 MetadataType = document.GetPropertyValue<string>("metadataType"),
                 StreamId = document.GetPropertyValue<string>("streamId"),
                 EventNumber = document.GetPropertyValue<int>("eventNumber"),
-                TimeToLiveSeconds = document.GetPropertyValue<int?>("timeToLiveSeconds")
+                TimeToLiveSeconds = document.GetPropertyValue<int?>(TimeToLiveCosmosDbSystemDocumentPropertyName)
             };
 
             return docDbEvent;
