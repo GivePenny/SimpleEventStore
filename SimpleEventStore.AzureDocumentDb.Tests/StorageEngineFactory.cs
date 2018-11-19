@@ -2,7 +2,6 @@
 using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.Azure.Documents;
-using Microsoft.Azure.Documents.Client;
 using Microsoft.Extensions.Configuration;
 using SimpleEventStore.Tests.Events;
 
