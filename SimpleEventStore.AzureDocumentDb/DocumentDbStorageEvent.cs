@@ -1,6 +1,4 @@
 using System;
-using System.Runtime.Serialization;
-using System.Security.Cryptography.X509Certificates;
 using Microsoft.Azure.Documents;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -9,6 +7,8 @@ namespace SimpleEventStore.AzureDocumentDb
 {
     public class DocumentDbStorageEvent
     {
+        private const string TimeToLiveCosmosDbSystemDocumentPropertyName = "ttl";
+
         [JsonProperty("id")]
         public string Id { get; set;  }
 
@@ -33,14 +33,18 @@ namespace SimpleEventStore.AzureDocumentDb
         [JsonProperty("eventNumber")]
         public int EventNumber { get; set; }
 
-        public static DocumentDbStorageEvent FromStorageEvent(StorageEvent @event, ISerializationTypeMap typeMap)
+        [JsonProperty(PropertyName = TimeToLiveCosmosDbSystemDocumentPropertyName, NullValueHandling = NullValueHandling.Ignore)]
+        public int? TimeToLiveSeconds { get; set; }
+
+        public static DocumentDbStorageEvent FromStorageEvent(StorageEvent @event, ISerializationTypeMap typeMap, int? documentTimeToLiveSeconds)
         {
             var docDbEvent = new DocumentDbStorageEvent
             {
                 Id = $"{@event.StreamId}:{@event.EventNumber}",
                 EventId = @event.EventId,
                 Body = JObject.FromObject(@event.EventBody),
-                BodyType = typeMap.GetNameFromType(@event.EventBody.GetType())
+                BodyType = typeMap.GetNameFromType(@event.EventBody.GetType()),
+                TimeToLiveSeconds = documentTimeToLiveSeconds
             };
             if (@event.Metadata != null)
             {
@@ -64,7 +68,8 @@ namespace SimpleEventStore.AzureDocumentDb
                 Metadata = document.GetPropertyValue<JObject>("metadata"),
                 MetadataType = document.GetPropertyValue<string>("metadataType"),
                 StreamId = document.GetPropertyValue<string>("streamId"),
-                EventNumber = document.GetPropertyValue<int>("eventNumber")
+                EventNumber = document.GetPropertyValue<int>("eventNumber"),
+                TimeToLiveSeconds = document.GetPropertyValue<int?>(TimeToLiveCosmosDbSystemDocumentPropertyName)
             };
 
             return docDbEvent;

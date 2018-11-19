@@ -17,6 +17,8 @@ namespace SimpleEventStore.AzureDocumentDb
 
         public int CollectionRequestUnits { get; set; }
 
-        public int? DefaultTimeToLive { get; set; }
+        public int? DefaultTimeToLiveSeconds { get; set; }
+
+        public int? DocumentTimeToLiveSeconds { get; set; }
     }
 }

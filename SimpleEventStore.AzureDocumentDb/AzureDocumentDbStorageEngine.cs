@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Azure.Documents;
@@ -48,22 +47,32 @@ namespace SimpleEventStore.AzureDocumentDb
 
         public async Task AppendToStream(string streamId, IEnumerable<StorageEvent> events)
         {
-            var docs = events.Select(d => DocumentDbStorageEvent.FromStorageEvent(d, typeMap)).ToList();
+            var documents = events
+                .Select(
+                    document => DocumentDbStorageEvent.FromStorageEvent(
+                        document,
+                        typeMap,
+                        collectionOptions.DocumentTimeToLiveSeconds))
+                .ToList();
 
             try
             {
                 var result = await client.ExecuteStoredProcedureAsync<dynamic>(
                     appendStoredProcedureLink,
-                    new RequestOptions { PartitionKey = new PartitionKey(streamId), ConsistencyLevel = collectionOptions.ConsistencyLevel },
-                    docs);
+                    new RequestOptions
+                    {
+                        PartitionKey = new PartitionKey(streamId),
+                        ConsistencyLevel = collectionOptions.ConsistencyLevel
+                    },
+                    documents);
 
                 loggingOptions.OnSuccess(ResponseInformation.FromWriteResponse(nameof(AppendToStream), result));
             }
-            catch (DocumentClientException ex)
+            catch (DocumentClientException exception)
             {
-                if (ex.Error.Message.Contains(ConcurrencyConflictErrorKey))
+                if (exception.Error.Message.Contains(ConcurrencyConflictErrorKey))
                 {
-                    throw new ConcurrencyException(ex.Error.Message, ex);
+                    throw new ConcurrencyException(exception.Error.Message, exception);
                 }
 
                 throw;
@@ -161,7 +170,7 @@ namespace SimpleEventStore.AzureDocumentDb
             var collection = new DocumentCollection
             {
                 Id = collectionOptions.CollectionName,
-                DefaultTimeToLive = collectionOptions.DefaultTimeToLive
+                DefaultTimeToLive = collectionOptions.DefaultTimeToLiveSeconds
             };
             collection.PartitionKey.Paths.Add("/streamId");
             collection.IndexingPolicy.IncludedPaths.Add(new IncludedPath { Path = "/*" });

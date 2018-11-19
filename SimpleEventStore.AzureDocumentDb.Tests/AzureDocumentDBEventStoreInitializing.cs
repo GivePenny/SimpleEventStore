@@ -1,10 +1,8 @@
 using System;
 using System.Linq;
-using System.Net;
 using System.Threading.Tasks;
 using Microsoft.Azure.Documents;
 using Microsoft.Azure.Documents.Client;
-using Microsoft.Azure.Documents.Linq;
 using NUnit.Framework;
 
 namespace SimpleEventStore.AzureDocumentDb.Tests
@@ -59,7 +57,7 @@ namespace SimpleEventStore.AzureDocumentDb.Tests
             var storageEngine = await StorageEngineFactory.Create(DatabaseName, o => 
             {
                 o.CollectionName = collectionName;
-                o.DefaultTimeToLive = ttl;
+                o.DefaultTimeToLiveSeconds = ttl;
             });
 
             await storageEngine.Initialise();
