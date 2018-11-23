@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace SimpleEventStore
 {
-    public class EventStore
+    public class EventStore : IEventStore
     {
         private readonly IStorageEngine engine;
 
