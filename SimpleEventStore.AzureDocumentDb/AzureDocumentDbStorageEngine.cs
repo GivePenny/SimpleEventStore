@@ -200,5 +200,18 @@ namespace SimpleEventStore.AzureDocumentDb
                 });
             }
         }
+
+        public async Task<bool> IsHealthy()
+        {
+            try
+            {
+                await client.ReadDocumentCollectionAsync(commitsLink);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
     }
 }

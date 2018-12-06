@@ -15,5 +15,7 @@ namespace SimpleEventStore
         Task<IStorageEngine> Initialise();
 
         Task DeleteStream(string streamId);
+
+        Task<bool> IsHealthy();
     }
 }
