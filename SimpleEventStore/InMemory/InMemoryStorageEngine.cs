@@ -96,5 +96,8 @@ namespace SimpleEventStore.InMemory
         {
             return Task.FromResult<IStorageEngine>(this);
         }
+
+        public Task<bool> IsHealthy()
+            => Task.FromResult(true);
     }
 }
