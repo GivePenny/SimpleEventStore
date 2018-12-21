@@ -55,7 +55,7 @@ namespace SimpleEventStore.AzureDocumentDb.Tests
                 throw new Exception($"The ConsistencyLevel value {consistencyLevel} is not supported");
             }
 
-            DocumentClient client = new DocumentClient(new Uri(documentDbUri), authKey);
+            var client = new DocumentClient(new Uri(documentDbUri), authKey);
 
             return await new AzureDocumentDbStorageEngineBuilder(client, databaseName)
                 .UseCollection(o =>

@@ -15,7 +15,7 @@ namespace SimpleEventStore.AzureDocumentDb
         private const string ConcurrencyConflictErrorKey = "Concurrency conflict.";
 
         private readonly DocumentClient client;
-        private readonly string databaseName;
+        private readonly DatabaseOptions databaseOptions;
         private readonly CollectionOptions collectionOptions;
         private readonly Uri commitsLink;
         private readonly Uri appendStoredProcedureLink;
@@ -23,14 +23,14 @@ namespace SimpleEventStore.AzureDocumentDb
         private readonly LoggingOptions loggingOptions;
         private readonly ISerializationTypeMap typeMap;
 
-        internal AzureDocumentDbStorageEngine(DocumentClient client, string databaseName, CollectionOptions collectionOptions, LoggingOptions loggingOptions, ISerializationTypeMap typeMap)
+        internal AzureDocumentDbStorageEngine(DocumentClient client, DatabaseOptions databaseOptions, CollectionOptions collectionOptions, LoggingOptions loggingOptions, ISerializationTypeMap typeMap)
         {
             this.client = client;
-            this.databaseName = databaseName;
+            this.databaseOptions = databaseOptions;
             this.collectionOptions = collectionOptions;
-            commitsLink = UriFactory.CreateDocumentCollectionUri(databaseName, collectionOptions.CollectionName);
-            appendStoredProcedureLink = UriFactory.CreateStoredProcedureUri(databaseName, collectionOptions.CollectionName, AppendStoredProcedureName);
-            deleteStoredProcedureLink = UriFactory.CreateStoredProcedureUri(databaseName, collectionOptions.CollectionName, DeleteStoredProcedureName);
+            commitsLink = UriFactory.CreateDocumentCollectionUri(databaseOptions.DatabaseName, collectionOptions.CollectionName);
+            appendStoredProcedureLink = UriFactory.CreateStoredProcedureUri(databaseOptions.DatabaseName, collectionOptions.CollectionName, AppendStoredProcedureName);
+            deleteStoredProcedureLink = UriFactory.CreateStoredProcedureUri(databaseOptions.DatabaseName, collectionOptions.CollectionName, DeleteStoredProcedureName);
             this.loggingOptions = loggingOptions;
             this.typeMap = typeMap;
         }
@@ -160,12 +160,20 @@ namespace SimpleEventStore.AzureDocumentDb
 
         private async Task CreateDatabaseIfItDoesNotExist()
         {
-            await client.CreateDatabaseIfNotExistsAsync(new Database { Id = databaseName });
+            await client.CreateDatabaseIfNotExistsAsync(
+                new Database
+                {
+                    Id = databaseOptions.DatabaseName
+                },
+                new RequestOptions
+                {
+                    OfferThroughput = databaseOptions.DatabaseRequestUnits
+                });
         }
 
         private async Task CreateCollectionIfItDoesNotExist()
         {
-            var databaseUri = UriFactory.CreateDatabaseUri(databaseName);
+            var databaseUri = UriFactory.CreateDatabaseUri(databaseOptions.DatabaseName);
 
             var collection = new DocumentCollection
             {
@@ -177,9 +185,10 @@ namespace SimpleEventStore.AzureDocumentDb
             collection.IndexingPolicy.ExcludedPaths.Add(new ExcludedPath { Path = "/body/*" });
             collection.IndexingPolicy.ExcludedPaths.Add(new ExcludedPath { Path = "/metadata/*" });
 
-            var requestOptions = new RequestOptions
+            var requestOptions = new RequestOptions()
             {
-                OfferThroughput = collectionOptions.CollectionRequestUnits
+                OfferThroughput = collectionOptions.CollectionRequestUnits,
+                ConsistencyLevel = collectionOptions.ConsistencyLevel                
             };
 
             await client.CreateDocumentCollectionIfNotExistsAsync(databaseUri, collection, requestOptions);
