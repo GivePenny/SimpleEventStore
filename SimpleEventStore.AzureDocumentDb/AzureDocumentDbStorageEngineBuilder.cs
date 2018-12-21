@@ -5,11 +5,18 @@ namespace SimpleEventStore.AzureDocumentDb
 {
     public class AzureDocumentDbStorageEngineBuilder
     {
-        private readonly string databaseName;
         private readonly DocumentClient client;
         private readonly CollectionOptions collectionOptions = new CollectionOptions();
+        private readonly DatabaseOptions databaseOptions = new DatabaseOptions();
         private readonly LoggingOptions loggingOptions = new LoggingOptions();
         private ISerializationTypeMap typeMap = new DefaultSerializationTypeMap();
+
+        public AzureDocumentDbStorageEngineBuilder(DocumentClient client)
+        {
+            Guard.IsNotNull(nameof(client), client);
+
+            this.client = client;
+        }
 
         public AzureDocumentDbStorageEngineBuilder(DocumentClient client, string databaseName)
         {
@@ -17,7 +24,7 @@ namespace SimpleEventStore.AzureDocumentDb
             Guard.IsNotNullOrEmpty(nameof(databaseName), databaseName);
 
             this.client = client;
-            this.databaseName = databaseName;
+            databaseOptions.DatabaseName = databaseName;
         }
 
         public AzureDocumentDbStorageEngineBuilder UseCollection(Action<CollectionOptions> action)
@@ -25,6 +32,14 @@ namespace SimpleEventStore.AzureDocumentDb
             Guard.IsNotNull(nameof(action), action);
 
             action(collectionOptions);
+            return this;
+        }
+
+        public AzureDocumentDbStorageEngineBuilder UseDatabase(Action<DatabaseOptions> action)
+        {
+            Guard.IsNotNull(nameof(action), action);
+
+            action(databaseOptions);
             return this;
         }
 
@@ -46,7 +61,7 @@ namespace SimpleEventStore.AzureDocumentDb
 
         public IStorageEngine Build()
         {
-            var engine = new AzureDocumentDbStorageEngine(client, databaseName, collectionOptions, loggingOptions, typeMap);
+            var engine = new AzureDocumentDbStorageEngine(client, databaseOptions, collectionOptions, loggingOptions, typeMap);
             return engine;
         }
     }
