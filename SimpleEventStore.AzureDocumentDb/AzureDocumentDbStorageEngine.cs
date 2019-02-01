@@ -83,59 +83,61 @@ namespace SimpleEventStore.AzureDocumentDb
         {
             var endPosition = numberOfEventsToRead == int.MaxValue ? int.MaxValue : startPosition + numberOfEventsToRead;
 
-            var eventsQuery = client.CreateDocumentQuery<DocumentDbStorageEvent>(commitsLink)
+            using (var eventsQuery = client.CreateDocumentQuery<DocumentDbStorageEvent>(commitsLink)
                 .Where(x => x.StreamId == streamId && x.EventNumber >= startPosition && x.EventNumber <= endPosition)
                 .OrderBy(x => x.EventNumber)
-                .AsDocumentQuery();
-
-            var events = new List<StorageEvent>();
-
-            while (eventsQuery.HasMoreResults)
+                .AsDocumentQuery())
             {
-                var response = await eventsQuery.ExecuteNextAsync<DocumentDbStorageEvent>();
-                loggingOptions.OnSuccess(ResponseInformation.FromReadResponse(nameof(ReadStreamForwards), response));
+                var events = new List<StorageEvent>();
 
-                foreach (var e in response)
+                while (eventsQuery.HasMoreResults)
                 {
-                    events.Add(e.ToStorageEvent(typeMap));
-                }
-            }
+                    var response = await eventsQuery.ExecuteNextAsync<DocumentDbStorageEvent>();
+                    loggingOptions.OnSuccess(ResponseInformation.FromReadResponse(nameof(ReadStreamForwards), response));
 
-            return events.AsReadOnly();
+                    foreach (var e in response)
+                    {
+                        events.Add(e.ToStorageEvent(typeMap));
+                    }
+                }
+
+                return events.AsReadOnly();
+            }
         }
 
         public async Task<IReadOnlyCollection<StorageEvent>> ReadStreamForwardsFromLast(string streamId, Predicate<StorageEvent> readFromHere)
         {
-            var eventsQuery = client.CreateDocumentQuery<DocumentDbStorageEvent>(commitsLink)
+            using (var eventsQuery = client.CreateDocumentQuery<DocumentDbStorageEvent>(commitsLink)
                 .Where(x => x.StreamId == streamId)
                 .OrderByDescending(x => x.EventNumber)
-                .AsDocumentQuery();
-
-            var eventsInReverseOrder = new List<StorageEvent>();
-            var finished = false;
-
-            while (!finished && eventsQuery.HasMoreResults)
+                .AsDocumentQuery())
             {
-                var response = await eventsQuery.ExecuteNextAsync<DocumentDbStorageEvent>();
-                loggingOptions.OnSuccess(ResponseInformation.FromReadResponse(nameof(ReadStreamForwardsFromLast), response));
+                var eventsInReverseOrder = new List<StorageEvent>();
+                var finished = false;
 
-                foreach (var e in response)
+                while (!finished && eventsQuery.HasMoreResults)
                 {
-                    var storageEvent = e.ToStorageEvent(typeMap);
-                    eventsInReverseOrder.Add(storageEvent);
+                    var response = await eventsQuery.ExecuteNextAsync<DocumentDbStorageEvent>();
+                    loggingOptions.OnSuccess(ResponseInformation.FromReadResponse(nameof(ReadStreamForwardsFromLast), response));
 
-                    if (readFromHere(storageEvent))
+                    foreach (var e in response)
                     {
-                        finished = true;
-                        break;
+                        var storageEvent = e.ToStorageEvent(typeMap);
+                        eventsInReverseOrder.Add(storageEvent);
+
+                        if (readFromHere(storageEvent))
+                        {
+                            finished = true;
+                            break;
+                        }
                     }
                 }
-            }
 
-            return eventsInReverseOrder
-                .Reverse<StorageEvent>()
-                .ToList()
-                .AsReadOnly();
+                return eventsInReverseOrder
+                    .Reverse<StorageEvent>()
+                    .ToList()
+                    .AsReadOnly();
+            }
         }
 
         public async Task DeleteStream(string streamId)
