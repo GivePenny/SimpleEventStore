@@ -13,6 +13,8 @@ namespace SimpleEventStore.InMemory
         private readonly ConcurrentDictionary<string, List<StorageEvent>> streams = new ConcurrentDictionary<string, List<StorageEvent>>();
         private readonly List<StorageEvent> allEvents = new List<StorageEvent>();
 
+        public event EventHandler<InMemoryEventStreamChanged> OnStreamChanged;
+
         public Task AppendToStream(string streamId, IEnumerable<StorageEvent> events)
         {
             return Task.Run(() =>
@@ -46,7 +48,7 @@ namespace SimpleEventStore.InMemory
                 allEvents.Remove(@event);
             }
 
-            streams.TryRemove(streamId, out var removedStream);
+            streams.TryRemove(streamId, out _);
 
             return Task.CompletedTask;
         }
@@ -57,6 +59,15 @@ namespace SimpleEventStore.InMemory
             {
                 allEvents.Add(e);
             }
+
+            var handler = OnStreamChanged;
+
+            if (handler is null)
+            {
+                return;
+            }
+
+            handler(this, new InMemoryEventStreamChanged(new List<StorageEvent>(events).AsReadOnly()));
         }
 
         public Task<IReadOnlyCollection<StorageEvent>> ReadStreamForwards(string streamId, int startPosition, int numberOfEventsToRead)
